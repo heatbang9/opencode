@@ -408,6 +408,60 @@ test("defaultModel respects config model setting", async () => {
   })
 })
 
+test("glm provider loads when GLM env vars present", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "opencode.json"),
+        JSON.stringify({
+          $schema: "https://opencode.ai/config.json",
+        }),
+      )
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    init: async () => {
+      Env.set("GLM_API_KEY", "glm-test-key")
+      Env.set("GLM_MODEL", "glm-4")
+    },
+    fn: async () => {
+      const providers = await Provider.list()
+      const glm = providers["glm"]
+      expect(glm).toBeDefined()
+      const baseURL = (glm!.options as any)?.baseURL as string | undefined
+      expect(baseURL).toBeDefined()
+      expect(baseURL).toContain("open.bigmodel.cn")
+      expect(Object.keys(glm!.models)).toEqual(expect.arrayContaining(["glm-4", "glm-4-plus", "glm-4-air"]))
+    },
+  })
+})
+
+test("defaultModel prioritizes GLM model from GLM_MODEL env", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "opencode.json"),
+        JSON.stringify({
+          $schema: "https://opencode.ai/config.json",
+        }),
+      )
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    init: async () => {
+      Env.set("GLM_API_KEY", "glm-test-key")
+      Env.set("GLM_MODEL", "glm-4-plus")
+    },
+    fn: async () => {
+      const model = await Provider.defaultModel()
+      expect(model.providerID).toBe("glm")
+      expect(model.modelID).toBe("glm-4-plus")
+    },
+  })
+})
+
 test("provider with baseURL from config", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {

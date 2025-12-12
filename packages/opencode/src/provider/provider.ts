@@ -25,6 +25,7 @@ import { createOpenAI } from "@ai-sdk/openai"
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
 import { createOpenRouter, type LanguageModelV2 } from "@openrouter/ai-sdk-provider"
 import { createOpenaiCompatible as createGitHubCopilotOpenAICompatible } from "./sdk/openai-compatible/src"
+import { GLMProvider } from "./glm"
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })
@@ -328,6 +329,13 @@ export namespace Provider {
         },
       }
     },
+    async glm(provider) {
+      const result = GLMProvider.createLoaderOptions(provider as any)
+      return {
+        autoload: result.autoload,
+        options: result.options,
+      }
+    },
   }
 
   export const Model = z
@@ -489,6 +497,7 @@ export namespace Provider {
     const config = await Config.get()
     const modelsDev = await ModelsDev.get()
     const database = mapValues(modelsDev, fromModelsDevProvider)
+    GLMProvider.ensureDatabaseEntry(database as any)
 
     const disabled = new Set(config.disabled_providers ?? [])
     const enabled = config.enabled_providers ? new Set(config.enabled_providers) : null
@@ -955,9 +964,25 @@ export namespace Provider {
     const cfg = await Config.get()
     if (cfg.model) return parseModel(cfg.model)
 
-    const provider = await list()
-      .then((val) => Object.values(val))
-      .then((x) => x.find((p) => !cfg.provider || Object.keys(cfg.provider).includes(p.id)))
+    const providersList = await list()
+
+    const preferredGLM = GLMProvider.preferredModel()
+    if (preferredGLM) {
+      const glm = providersList["glm"]
+      if (glm && glm.models[preferredGLM]) {
+        return {
+          providerID: "glm",
+          modelID: preferredGLM,
+        }
+      }
+      log.warn("Preferred GLM model is unavailable", {
+        modelID: preferredGLM,
+      })
+    }
+
+    const provider = Object.values(providersList).find(
+      (p) => !cfg.provider || Object.keys(cfg.provider).includes(p.id),
+    )
     if (!provider) throw new Error("no providers found")
     const [model] = sort(Object.values(provider.models))
     if (!model) throw new Error("no models found")

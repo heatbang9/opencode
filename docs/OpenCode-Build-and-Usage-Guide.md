@@ -200,7 +200,61 @@ curl -X POST http://localhost:4096/session \
   -d '{
     "agent": "gpt-4",
     "model": "openai"
-  }'
+}'
+
+## GLM Provider 설정
+
+GLM(ChatGLM) 모델을 기본 제공자로 사용하려면 API 키와 모델 정보를 등록해야 합니다. OpenCode는 환경 변수, `~/.config/opencode/opencode.json(c)` 설정 파일, 프로젝트 로컬 설정을 모두 지원합니다.
+
+### 1. 환경 변수
+
+```bash
+export GLM_API_KEY=your_glm_api_key
+export GLM_MODEL=glm-4-plus          # 기본으로 사용할 모델
+export GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+```
+
+환경 변수를 지정하면 `opencode serve`와 CLI 모드 모두에서 자동으로 GLM 제공자를 활성화합니다. `GLM_MODEL` 값을 지정하면 해당 모델이 기본 선택으로 사용됩니다(설정 파일에서 `model`을 따로 지정한 경우가 아니면).
+
+### 2. 설정 파일 예시
+
+`~/.config/opencode/opencode.jsonc` 또는 리포지토리 루트의 `opencode.jsonc`에 다음을 추가하면 환경 변수를 사용하지 않고도 GLM을 구성할 수 있습니다.
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "glm": {
+      "options": {
+        "apiKey": "{env:GLM_API_KEY}",
+        "baseURL": "https://open.bigmodel.cn/api/paas/v4",
+        "rateLimit": {
+          "requestsPerInterval": 8,
+          "intervalMs": 1000
+        },
+        "retry": {
+          "maxRetries": 4,
+          "baseDelayMs": 800
+        }
+      }
+    }
+  }
+}
+```
+
+`rateLimit`과 `retry` 값은 선택 사항이며, API 호출이 과도하게 실패하지 않도록 OpenCode가 자체적으로 처리합니다.
+
+### 3. 확인 방법
+
+```bash
+# 등록된 모델 확인
+opencode models | grep glm
+
+# 서버 로그에서 GLM provider 로딩 확인
+OPENCODE_LOG=debug opencode serve
+```
+
+문제가 발생하면 `GLM_API_KEY`가 올바른지와 네트워크에서 `https://open.bigmodel.cn`에 접근 가능한지 확인하세요.
 ```
 
 ### 2. 확장된 API 사용 (mainServer 통합)
