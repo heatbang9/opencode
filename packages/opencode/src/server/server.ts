@@ -1918,7 +1918,7 @@ export namespace Server {
           return c.json({
             status: "healthy",
             uptime: process.uptime(),
-            version: Installation.VERSION,
+            version: "0.0.0-local_addon",
             timestamp: new Date().toISOString(),
             memory: {
               used: memUsage.heapUsed,
