@@ -4,11 +4,12 @@ import { Identifier } from "../id/id"
 export namespace EnhancedSession {
   // 확장된 세션 정보 타입
   export const Info = z.object({
-    // 기존 세션 정보
-    id: Identifier.schema("session"),
+    // TODO: Identifier.schema 오류 임시방편 - 세션 ID 검증
+    // Identifier 모듈 문제로 임시로 string으로 변경
+    id: z.string(),
     projectID: z.string(),
     directory: z.string(),
-    parentID: Identifier.schema("session").optional(),
+    parentID: z.string().optional(),
     title: z.string(),
     version: z.string(),
 

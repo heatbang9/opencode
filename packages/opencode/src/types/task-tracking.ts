@@ -4,7 +4,9 @@ import { Identifier } from "../id/id"
 export namespace TaskTracking {
   // 작업 정보
   export const Info = z.object({
-    id: Identifier.schema("task"),
+    // TODO: Identifier.schema 오류 임시방편 - 작업 ID 검증
+    // Identifier 모듈 문제로 임시로 string으로 변경
+    id: z.string(),
     sessionId: z.string(),
     projectId: z.string().optional(),
     type: z.enum([
@@ -195,7 +197,9 @@ export namespace TaskTracking {
 
   // 작업 실행 로그
   export const ExecutionLog = z.object({
-    id: Identifier.schema("task_log"),
+    // TODO: Identifier.schema 오류 임시방편 - 작업 로그 ID 검증
+    // Identifier 모듈 문제로 임시로 string으로 변경
+    id: z.string(),
     taskId: z.string(),
     timestamp: z.date().default(() => new Date()),
     level: z.enum(["debug", "info", "warn", "error"]).default("info"),

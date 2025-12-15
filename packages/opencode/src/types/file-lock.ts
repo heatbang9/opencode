@@ -4,7 +4,9 @@ import { Identifier } from "../id/id"
 export namespace FileLock {
   // 파일 잠금 정보
   export const Info = z.object({
-    id: Identifier.schema("file_lock"),
+    // TODO: Identifier.schema 오류 임시방편 - 파일 잠금 ID 검증
+    // Identifier 모듈 문제로 임시로 string으로 변경
+    id: z.string(),
     filePath: z.string(),
     sessionId: z.string(),      // 잠금을 소유한 세션 ID
     lockType: z.enum(["read", "write", "exclusive"]).default("write"),
@@ -130,7 +132,9 @@ export namespace FileLock {
 
   // 잠금 이벤트
   export const Event = z.object({
-    id: Identifier.schema("lock_event"),
+    // TODO: Identifier.schema 오류 임시방편 - 잠금 이벤트 ID 검증
+    // Identifier 모듈 문제로 임시로 string으로 변경
+    id: z.string(),
     type: z.enum([
       "lock_acquired",
       "lock_released",
@@ -152,7 +156,9 @@ export namespace FileLock {
 
   // 잠금 큐 항목
   export const QueueItem = z.object({
-    id: Identifier.schema("lock_queue_item"),
+    // TODO: Identifier.schema 오류 임시방편 - 잠금 큐 항목 ID 검증
+    // Identifier 모듈 문제로 임시로 string으로 변경
+    id: z.string(),
     filePath: z.string(),
     sessionId: z.string(),
     lockType: z.enum(["read", "write", "exclusive"]),

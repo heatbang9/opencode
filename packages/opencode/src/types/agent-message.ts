@@ -4,7 +4,10 @@ import { Identifier } from "../id/id"
 export namespace AgentMessage {
   // 에이전트 메시지 타입
   export const Info = z.object({
-    id: Identifier.schema("agent_message"),
+    // TODO: Identifier.schema("agent_message")가 undefined를 반환하는 임시방편
+    // 원래는 에이전트 메시지 ID 형식을 검증해야 하지만, 현재 Identifier 모듈에 문제가 있음
+    // 나중에 Identifier 모듈이 정상화되면 다시 원래 코드로 복원할 것
+    id: z.string(),              // 임시로 단순 문자열 검증으로 변경
     from: z.string(),           // 보내는 세션 ID
     to: z.string(),             // 받는 세션 ID
     type: z.enum(["request", "response", "broadcast", "notification"]),
