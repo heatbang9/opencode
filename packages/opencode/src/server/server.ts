@@ -1881,6 +1881,57 @@ export namespace Server {
         },
       )
       .get(
+        "/health",
+        describeRoute({
+          summary: "Health check",
+          description: "Check if the OpenCode server is running and healthy.",
+          operationId: "health.check",
+          responses: {
+            200: {
+              description: "Server is healthy",
+              content: {
+                "application/json": {
+                  schema: resolver(z.object({
+                    status: z.string(),
+                    uptime: z.number(),
+                    version: z.string(),
+                    timestamp: z.string(),
+                    memory: z.object({
+                      used: z.number(),
+                      total: z.number().optional(),
+                    }),
+                    sessions: z.object({
+                      active: z.number(),
+                      total: z.number(),
+                    }),
+                  })),
+                },
+              },
+            },
+          },
+        }),
+        async (c) => {
+          const memUsage = process.memoryUsage()
+          const sessions = await Array.fromAsync(Session.list())
+          const activeSessions = sessions.filter(s => !s.time.archived)
+
+          return c.json({
+            status: "healthy",
+            uptime: process.uptime(),
+            version: Installation.VERSION,
+            timestamp: new Date().toISOString(),
+            memory: {
+              used: memUsage.heapUsed,
+              total: memUsage.heapTotal,
+            },
+            sessions: {
+              active: activeSessions.length,
+              total: sessions.length,
+            },
+          })
+        },
+      )
+      .get(
         "/mcp",
         describeRoute({
           summary: "Get MCP status",

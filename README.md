@@ -1,101 +1,372 @@
-<p align="center">
-  <a href="https://opencode.ai">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
-    </picture>
-  </a>
-</p>
-<p align="center">The open source AI coding agent.</p>
-<p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/sst/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/sst/opencode/publish.yml?style=flat-square&branch=dev" /></a>
-</p>
+# OpenCode
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+AI 기반의 개발 도구로, 여러 플랫폼에서 실행할 수 있습니다. CLI 터미널 UI와 서버 API 모드를 모두 지원합니다.
 
----
+> **버전**: 0.0.0-local_addon
+> **업데이트**: 2024-12-15
 
-### Installation
+## 📋 목차
 
+1. [빠른 시작](#-빠른-시작)
+2. [설치](#-설치)
+3. [사용 방법](#-사용-방법)
+4. [CLI 명령어](#-cli-명령어)
+5. [서버 API](#-서버-api)
+6. [스크립트](#-스크립트)
+7. [환경 설정](#-환경-설정)
+8. [GLM 모델 설정](#glm-모델-설정)
+9. [문제 해결](#-문제-해결)
+
+## 🚀 빠른 시작
+
+### 1. 설치
 ```bash
-# YOLO
-curl -fsSL https://opencode.ai/install | bash
-
-# Package managers
-npm i -g opencode-ai@latest        # or bun/pnpm/yarn
-scoop bucket add extras; scoop install extras/opencode  # Windows
-choco install opencode             # Windows
-brew install opencode              # macOS and Linux
-paru -S opencode-bin               # Arch Linux
-mise use -g ubi:sst/opencode # Any OS
-nix run nixpkgs#opencode           # or github:sst/opencode for latest dev branch
+# 자동 설치 스크립트 실행
+./install-opencode.sh
 ```
 
-> [!TIP]
-> Remove versions older than 0.1.x before installing.
-
-#### Installation Directory
-
-The install script respects the following priority order for the installation path:
-
-1. `$OPENCODE_INSTALL_DIR` - Custom installation directory
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification compliant path
-3. `$HOME/bin` - Standard user binary directory (if exists or can be created)
-4. `$HOME/.opencode/bin` - Default fallback
-
+### 2. 실행
 ```bash
-# Examples
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+# TUI 모드 (터미널 UI)
+opencode
+
+# 서버 모드
+opencode serve
 ```
 
-### Agents
+## 🔧 설치
 
-OpenCode includes two built-in agents you can switch between,
-you can switch between these using the `Tab` key.
+### 자동 설치 (권장)
+```bash
+# 설치 스크립트 실행
+./install-opencode.sh
 
-- **build** - Default, full access agent for development work
-- **plan** - Read-only agent for analysis and code exploration
-  - Denies file edits by default
-  - Asks permission before running bash commands
-  - Ideal for exploring unfamiliar codebases or planning changes
+# 옵션 1: 사용자 설치 (권장)
+# 옵션 2: 시스템 설치 (sudo 필요)
+# 옵션 3: 현재 위치만 사용
+```
 
-Also, included is a **general** subagent for complex searches and multi-step tasks.
-This is used internally and can be invoked using `@general` in messages.
+### 전체 빌드 및 재설치
+```bash
+# Git pull → 빌드 → 설치 한 번에 실행
+./rebuild-and-install.sh
+```
 
-Learn more about [agents](https://opencode.ai/docs/agents).
+### 수동 설치
+```bash
+# 1. 의존성 설치
+bun install
 
-### Documentation
+# 2. 빌드
+cd packages/opencode
+bun run build
 
-For more info on how to configure OpenCode [**head over to our docs**](https://opencode.ai/docs).
+# 3. 설치
+sudo cp dist/opencode-linux-$(uname -m | sed 's/x86_64/x64/')/bin/opencode /usr/local/bin/
+# 또는
+mkdir -p ~/.local/bin
+cp dist/opencode-linux-$(uname -m | sed 's/x86_64/x64/')/bin/opencode ~/.local/bin/
+```
 
-### Contributing
+## 💻 사용 방법
 
-If you're interested in contributing to OpenCode, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
+### TUI 모드 (터미널 UI)
+```bash
+# 현재 디렉토리에서 실행
+opencode
 
-### Building on OpenCode
+# 특정 프로젝트 디렉토리에서 실행
+opencode /path/to/project
 
-If you are working on a project that's related to OpenCode and is using "opencode" as a part of its name; for example, "opencode-dashboard" or "opencode-mobile", please add a note to your README to clarify that it is not built by the OpenCode team and is not affiliated with us in anyway.
+# GLM 모델 사용
+export GLM_API_KEY=your_api_key
+opencode --model glm-4-plus
+```
 
-### FAQ
+### 서버 모드
+```bash
+# 기본 포트(4096)로 서버 시작
+opencode serve
 
-#### How is this different than Claude Code?
+# 특정 포트에서 서버 시작
+opencode serve --port 8080
 
-It's very similar to Claude Code in terms of capability. Here are the key differences:
+# 특정 호스트에서 서버 시작
+opencode serve --hostname 0.0.0.0
+```
 
-- 100% open source
-- Not coupled to any provider. Although we recommend the models we provide through [OpenCode Zen](https://opencode.ai/zen); OpenCode can be used with Claude, OpenAI, Google or even local models. As models evolve the gaps between them will close and pricing will drop so being provider-agnostic is important.
-- Out of the box LSP support
-- A focus on TUI. OpenCode is built by neovim users and the creators of [terminal.shop](https://terminal.shop); we are going to push the limits of what's possible in the terminal.
-- A client/server architecture. This for example can allow OpenCode to run on your computer, while you can drive it remotely from a mobile app. Meaning that the TUI frontend is just one of the possible clients.
+## 📜 CLI 명령어
 
-#### What's the other repo?
+### 기본 명령어
+```bash
+# OpenCode TUI 시작
+opencode
 
-The other confusingly named repo has no relation to this one. You can [read the story behind it here](https://x.com/thdxr/status/1933561254481666466).
+# 서버 모드 실행
+opencode serve
 
----
+# 도움말 보기
+opencode --help
+opencode --version
+```
 
-**Join our community** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+### 세션 관리
+```bash
+# 세션 목록 보기
+opencode session list
+
+# 세션 상태 보기
+opencode session status
+
+# 새 세션 시작
+opencode run
+
+# 특정 세션에 연결
+opencode attach <session-id>
+```
+
+### 모델 관리
+```bash
+# 사용 가능한 모델 목록
+opencode models
+
+# 특정 프로바이더의 모델
+opencode models openai
+opencode models anthropic
+```
+
+### 인증 관리
+```bash
+# 인증 정보 관리
+opencode auth
+
+# 인증 상태 확인
+opencode auth status
+```
+
+### 데이터 관리
+```bash
+# 세션 내보내기
+opencode export
+
+# 세션 가져오기
+opencode import <file>
+
+# 통계 보기
+opencode stats
+```
+
+## 🌐 서버 API
+
+OpenCode는 다양한 API 엔드포인트를 제공합니다.
+
+### 헬스 체크
+```bash
+# 서버 상태 확인
+curl http://localhost:4096/health
+
+# 상세 정보
+curl http://localhost:4096/health | jq .
+```
+
+### 세션 관리
+```bash
+# 세션 목록
+curl http://localhost:4096/session
+
+# 새 세션 생성
+curl -X POST http://localhost:4096/session \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent": "gpt-4",
+    "model": "openai"
+  }'
+```
+
+### 확장 API (mainServer 통합)
+```bash
+# 확장된 세션 생성
+curl -X POST http://localhost:4096/api/sessions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent": "gpt-4",
+    "model": "openai",
+    "projectId": "project-123",
+    "agentRole": "frontend",
+    "permissions": {
+      "fileAccess": {
+        "read": ["src/**/*", "public/**/*"],
+        "write": ["src/**/*"]
+      }
+    }
+  }'
+
+# 프로젝트 생성
+curl -X POST http://localhost:4096/api/projects \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Project",
+    "path": "/workspace/my-project"
+  }'
+```
+
+## 📜 스크립트
+
+### 실행 스크립트
+```bash
+# OpenCode 시작 및 Watchdog 활성화
+./start-opencode.sh
+
+# 서버 시작/중지/재시작
+./run-opencode.sh start
+./run-opencode.sh stop
+./run-opencode.sh restart
+
+# 상태 확인
+./run-opencode.sh status
+
+# 로그 보기
+./run-opencode.sh logs
+```
+
+### Watchdog (프로세스 감시)
+```bash
+# Watchdog 시작
+./watchdog-opencode.sh
+
+# 데몬 모드로 백그라운드 실행
+./watchdog-opencode.sh daemon
+
+# Watchdog 중지
+kill $(cat /tmp/watchdog-opencode.pid)
+```
+
+## ⚙️ 환경 설정
+
+### 환경 변수
+```bash
+# 서버 설정
+export OPENCODE_SERVER_PORT=4096
+export OPENCODE_SERVER_HOST=0.0.0.0
+
+# 로그 레벨
+export OPENCODE_LOG_LEVEL=info
+export OPENCODE_DEBUG=true
+
+# 기타
+export OPENCODE_SHARE=auto
+export OPENCODE_THEME=dark
+```
+
+### 설정 파일 위치
+- Linux/macOS: `~/.config/opencode/config.json`
+- Windows: `%APPDATA%\opencode\config.json`
+
+### 설정 예시
+```json
+{
+  "model": "gpt-4",
+  "provider": "openai",
+  "server": {
+    "port": 4096,
+    "hostname": "0.0.0.0"
+  },
+  "share": "auto",
+  "theme": "dark"
+}
+```
+
+## 🤖 GLM 모델 설정
+
+GLM(ChatGLM) 모델을 사용하려면 API 키가 필요합니다.
+
+### 1. 환경 변수로 설정
+```bash
+export GLM_API_KEY=your_glm_api_key
+export GLM_MODEL=glm-4-plus
+export GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+```
+
+### 2. 설정 파일로 설정
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "glm": {
+      "options": {
+        "apiKey": "{env:GLM_API_KEY}",
+        "baseURL": "https://open.bigmodel.cn/api/paas/v4",
+        "rateLimit": {
+          "requestsPerInterval": 8,
+          "intervalMs": 1000
+        },
+        "retry": {
+          "maxRetries": 4,
+          "baseDelayMs": 800
+        }
+      }
+    }
+  }
+}
+```
+
+### 3. 확인
+```bash
+# 등록된 GLM 모델 확인
+opencode models | grep glm
+
+# GLM로 직접 실행
+export GLM_API_KEY=your_key
+opencode --model glm-4-plus
+```
+
+## 🔧 문제 해결
+
+### 빌드 문제
+```bash
+# 캐시 정리
+rm -rf node_modules dist
+bun install
+bun run build
+```
+
+### 권한 오류
+```bash
+# macOS (quarantine 해제)
+sudo xattr -rd com.apple.quarantine dist/*/bin/opencode
+
+# Linux (실행 권한)
+chmod +x dist/*/bin/opencode
+```
+
+### 포트 충돌
+```bash
+# 다른 포트 사용
+opencode serve --port 8080
+
+# 사용 중인 포트 확인
+lsof -i :4096
+```
+
+### 디버깅
+```bash
+# 디버그 모드
+OPENCODE_LOG_LEVEL=debug opencode serve
+
+# 상세 로그
+opencode serve --debug
+```
+
+## 📚 추가 정보
+
+- [API 통합 가이드](docs/OpenCode-API-Integration-Guide.md)
+- [빌드 및 사용 가이드](docs/OpenCode-Build-and-Usage-Guide.md)
+- [실행 가이드](README-EXECUTION.md)
+
+## 🤝 기여
+
+버그 리포트나 기능 요청은 GitHub Issues를 통해 제출해 주세요.
+
+## 📄 라이선스
+
+MIT License
