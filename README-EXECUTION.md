@@ -85,6 +85,24 @@ kill $(cat /tmp/watchdog-opencode.pid)
 ./run-opencode.sh stop
 ```
 
+## CLI 설치
+
+### 자동 설치
+```bash
+# 설치 스크립트 실행
+./install-opencode.sh
+
+# 옵션 1: 사용자 설치 (권장)
+# 옵션 2: 시스템 설치 (sudo 필요)
+# 옵션 3: 현재 위치만 사용
+```
+
+### 전체 빌드 및 재설치
+```bash
+# Git pull → 빌드 → 설치 한 번에 실행
+./rebuild-and-install.sh
+```
+
 ## 주요 기능
 
 ### run-opencode.sh
@@ -100,3 +118,53 @@ kill $(cat /tmp/watchdog-opencode.pid)
 - ✅ 자동 재시작 (최대 5회)
 - ✅ 메모리 사용량 경고
 - ✅ 재시작 쿨다운 (60초)
+
+### rebuild-and-install.sh
+- ✅ Git 최신화
+- ✅ 의존성 업데이트
+- ✅ 이전 빌드 정리
+- ✅ Bun 버전 확인
+- ✅ 전체 빌드 실행
+- ✅ CLI 자동 설치
+
+## OpenCode CLI 명령어
+
+### 기본 사용
+```bash
+# TUI 모드 시작 (터미널 UI)
+opencode
+
+# 특정 프로젝트에서 실행
+opencode /path/to/project
+
+# 서버 모드
+opencode serve
+opencode serve --port 8080
+
+# 세션 관리
+opencode session list
+opencode session create
+
+# 모델 목록
+opencode models
+
+# GLM 모델 사용
+export GLM_API_KEY=your_api_key
+opencode --model glm-4-plus
+```
+
+### 고급 기능
+```bash
+# ACP 서버 시작
+opencode acp
+
+# 원격 서버 연결
+opencode attach ws://localhost:4096
+
+# 데이터 관리
+opencode export session-123
+opencode import session-backup.json
+
+# 통계 보기
+opencode stats
+```
