@@ -14,7 +14,12 @@ NC='\033[0m'
 echo -e "${GREEN}OpenCode 시작 및 Watchdog 활성화...${NC}"
 
 # 포트 설정
-PORT=${1:-4096}
+PORT=${1:-45000}
+
+# Projects 폴더 생성
+PROJECTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/projects"
+mkdir -p "$PROJECTS_DIR"
+echo -e "${BLUE}📁 Projects 디렉토리: ${NC}$PROJECTS_DIR"
 
 # 스크립트 경로
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -40,20 +40,59 @@ echo -e "${PURPLE}  OpenCode 전체 빌드 및 재설치${NC}"
 echo -e "${PURPLE}================================${NC}"
 echo ""
 
-# 1. Git 최신화
+# 0. 실행 중인 OpenCode 확인 및 종료
+log "0. 실행 중인 OpenCode 확인..."
+OPENCODE_RUNNING=false
+if pgrep -f "opencode serve" > /dev/null 2>&1; then
+    warn "실행 중인 OpenCode 서버 발견"
+    OPENCODE_RUNNING=true
+
+    # run-opencode.sh가 있으면 사용, 없으면 직접 종료
+    if [ -f "./run-opencode.sh" ]; then
+        info "run-opencode.sh로 정상 종료 시도..."
+        ./run-opencode.sh stop || true
+    else
+        info "OpenCode 프로세스 직접 종료..."
+        pkill -f "opencode serve" || true
+    fi
+
+    # 종료 대기 (최대 10초)
+    for i in {1..10}; do
+        if ! pgrep -f "opencode serve" > /dev/null 2>&1; then
+            log "✅ OpenCode 정상 종료됨"
+            break
+        fi
+        sleep 1
+    done
+
+    # 강제 종료
+    if pgrep -f "opencode serve" > /dev/null 2>&1; then
+        warn "강제 종료 중..."
+        pkill -9 -f "opencode serve" || true
+        sleep 2
+    fi
+else
+    log "실행 중인 OpenCode 없음"
+fi
+echo ""
+
+# 1. Git 최신화 (선택사항)
 log "1. Git 저장소 최신화..."
 if [ -n "$(git status --porcelain)" ]; then
     warn "작업 중인 변경사항이 있습니다:"
     git status --short
-    read -p "계속하시겠습니까? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
 fi
 
-info "Git pull 실행 중..."
-git pull origin local_addon
+read -p "Git pull을 실행하시겠습니까? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    info "Git pull 실행 중..."
+    git pull origin local_addon || {
+        warn "Git pull 실패. 계속 진행합니다..."
+    }
+else
+    info "Git pull 건너뜀"
+fi
 
 # 2. 의존성 업데이트
 log "2. 의존성 업데이트..."
@@ -136,11 +175,35 @@ echo -e "${GREEN}================================${NC}"
 echo -e "${GREEN}  빌드 및 설치 완료!${NC}"
 echo -e "${GREEN}================================${NC}"
 echo ""
-echo -e "${BLUE}사용 방법:${NC}"
-echo "  opencode                    # TUI 모드 실행"
-echo "  opencode serve              # 서버 모드 실행"
-echo "  opencode --help             # 도움말"
-echo ""
-echo -e "${BLUE}실행 서버 시작:${NC}"
-echo "  ./start-opencode.sh         # 자동 실행 스크립트"
+
+# 10. OpenCode 재시작 (이전에 실행 중이었으면)
+if [ "$OPENCODE_RUNNING" = true ]; then
+    echo ""
+    log "10. OpenCode 자동 재시작..."
+
+    if [ -f "./run-opencode.sh" ]; then
+        info "run-opencode.sh로 재시작 중..."
+        ./run-opencode.sh start 45000
+
+        if [ $? -eq 0 ]; then
+            log "✅ OpenCode 재시작 완료!"
+            echo ""
+            echo -e "${GREEN}🚀 OpenCode가 포트 45000에서 실행 중입니다${NC}"
+            echo -e "${BLUE}📍 접속 URL:${NC} http://localhost:45000"
+        else
+            warn "재시작 실패. 수동으로 실행하세요: ./run-opencode.sh start 45000"
+        fi
+    else
+        warn "run-opencode.sh를 찾을 수 없습니다. 수동으로 OpenCode를 시작하세요."
+    fi
+else
+    echo -e "${BLUE}사용 방법:${NC}"
+    echo "  opencode                    # TUI 모드 실행"
+    echo "  opencode serve              # 서버 모드 실행"
+    echo "  opencode --help             # 도움말"
+    echo ""
+    echo -e "${BLUE}실행 서버 시작:${NC}"
+    echo "  ./start-opencode.sh         # 자동 실행 스크립트"
+    echo "  ./run-opencode.sh start 45000  # 포트 45000으로 시작"
+fi
 echo ""

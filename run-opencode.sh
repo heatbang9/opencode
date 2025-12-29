@@ -76,9 +76,15 @@ start() {
 
     log "OpenCode 시작 중 (포트: $PORT)..."
 
+    # projects 폴더 생성 (없으면)
+    PROJECTS_DIR="/home/ubuntu/project/opencode/projects"
+    mkdir -p "$PROJECTS_DIR"
+
+    # projects 폴더를 기본 workspace로 설정
+    cd "$PROJECTS_DIR"
+
     # 백그라운드로 실행
-    cd /home/ubuntu/project/opencode
-    nohup bun --cwd packages/opencode src/index.ts serve --port $PORT > "$LOG_FILE" 2>&1 &
+    nohup bun --cwd /home/ubuntu/project/opencode/packages/opencode /home/ubuntu/project/opencode/packages/opencode/src/index.ts serve --port $PORT > "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
 
     # 시작 확인
