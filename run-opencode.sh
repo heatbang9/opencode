@@ -1,13 +1,30 @@
 #!/bin/bash
 
 # OpenCode 실행 스크립트
-# 사용법: ./run-opencode.sh [포트]
+# 사용법: ./run-opencode.sh [command] [port]
+# 예시: ./run-opencode.sh start 45000
 
 set -e
 
 # 기본값 설정
 DEFAULT_PORT=4096
-PORT=${1:-$DEFAULT_PORT}
+
+# 명령어와 포트 파싱
+COMMAND="${1:-start}"
+if [[ "$COMMAND" =~ ^[0-9]+$ ]]; then
+    # 첫 번째 인자가 숫자면 포트로 간주 (backward compatibility)
+    PORT=$COMMAND
+    COMMAND="start"
+elif [[ "$COMMAND" == "start" || "$COMMAND" == "stop" || "$COMMAND" == "restart" || "$COMMAND" == "status" || "$COMMAND" == "logs" ]]; then
+    # 명령어가 맞으면 두 번째 인자를 포트로
+    PORT=${2:-$DEFAULT_PORT}
+else
+    # 그 외는 에러
+    echo "알 수 없는 명령어: $COMMAND"
+    echo "사용법: $0 {start|stop|restart|status|logs} [포트]"
+    exit 1
+fi
+
 LOG_DIR="$HOME/.local/share/opencode/logs"
 PID_FILE="/tmp/opencode.pid"
 LOG_FILE="$LOG_DIR/opencode-$(date +%Y%m%d).log"
@@ -180,7 +197,7 @@ logs() {
 }
 
 # 메인
-case "${1:-start}" in
+case "$COMMAND" in
     start)
         start
         ;;
