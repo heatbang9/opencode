@@ -2565,6 +2565,32 @@ export namespace Server {
   }
 
   export function listen(opts: { port: number; hostname: string }) {
+    // 서버 시작 시 모든 세션 상태를 idle로 리셋
+    // (재시작 시 기존 busy 세션이 남아있는 문제 해결)
+    try {
+      const allStatuses = SessionStatus.list()
+      if (allStatuses.length > 0) {
+        log.info("reset_session_status", {
+          message: `서버 시작 시 ${allStatuses.length}개 busy 세션 발견, 모두 idle로 리셋`,
+          busySessions: allStatuses.length,
+        })
+
+        // 모든 세션 가져오기
+        const sessions = Session.list()
+        sessions.forEach((session) => {
+          SessionStatus.set(session.id, { type: "idle" })
+        })
+
+        log.info("reset_session_status_complete", {
+          message: `${sessions.length}개 세션 상태 리셋 완료`,
+        })
+      }
+    } catch (error) {
+      log.warn("reset_session_status_failed", {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+
     const server = Bun.serve({
       port: opts.port,
       hostname: opts.hostname,
