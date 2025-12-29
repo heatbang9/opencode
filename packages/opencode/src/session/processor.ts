@@ -391,6 +391,10 @@ export namespace SessionProcessor {
           }
           input.assistantMessage.time.completed = Date.now()
           await Session.updateMessage(input.assistantMessage)
+
+          // 세션 상태를 idle로 변경 (작업 완료)
+          SessionStatus.set(input.sessionID, { type: "idle" })
+
           if (blocked) return "stop"
           if (input.assistantMessage.error) return "stop"
           return "continue"
